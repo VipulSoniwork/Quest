@@ -17,7 +17,7 @@ pub struct HttpResponse {
 
 impl HttpResponse {
     pub fn new(request: &HttpRequest) -> io::Result<HttpResponse> {
-        let version = Version::V2_0;
+        let version = Version::V1_1;
         let mut status = ResponseStatus::NotFound;
         let mut content_length = 0;
         let mut accept_ranges = AcceptRanges::None;
@@ -31,52 +31,30 @@ impl HttpResponse {
         if new_path.exists() {
             if new_path.is_file() {
                 let content = fs::read_to_string(&new_path)?;
-                response_body.push_str(&content);
                 content_length = content.len();
                 status = ResponseStatus::OK;
                 accept_ranges = AcceptRanges::Bytes;
-                let content = format!(
-                    "{} {} {}\nContent-Length: {}\r\n\r\n{}",
+
+                // Create the response and then append the content at the end
+                response_body = format!(
+                    "{} {}\n{}\ncontent-length: {}\r\n\r\n{}",
                     version,
                     status,
                     accept_ranges,
                     content_length,
-                    response_body
+                    content // Now adding the content properly after the headers
                 );
-            } else {
-                // Handle directory or other types of resources
-                let four="<html>\
-                    <body>\
-                    <h1>404 NOT FOUND</h1>\
-                    </body>\
-                    </html>";
-                content_length= four.len();
-                let content = format!(
-                    "{} {} Accept-Ranges: {}\nContent-Length: {}\r\n\r\n{}
-",
-                    version,
-                    status,
-                    accept_ranges,
-                    content_length,
-                    four,
-                );
-                response_body.push_str(&content);
             }
         } else {
-            // Handle the case where the resource does not exist
-            let content = format!(
-                "{} {} Accept-Ranges: {}\nContent-Length: {}\r\n\r\n\
-                <html>\
-                <body>\
-                <h1>404 NOT FOUND</h1>\
-                </body>\
-                </html>",
+            // Handle the case where the file does not exist or is not a file
+            response_body = format!(
+                "{} {}\n{}\ncontent-length: {}\r\n\r\n{}",
                 version,
                 status,
                 accept_ranges,
-                content_length
+                content_length,
+                response_body // This could be an error message or an empty body
             );
-            response_body.push_str(&content);
         }
 
         Ok(HttpResponse {
@@ -89,6 +67,7 @@ impl HttpResponse {
         })
     }
 }
+
 
 
 #[derive(Debug)]
