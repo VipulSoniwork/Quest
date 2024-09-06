@@ -1,0 +1,1 @@
+/workspaces/Quest/simple-http/target/debug/libsimple_http.rlib: /workspaces/Quest/simple-http/src/http/mod.rs /workspaces/Quest/simple-http/src/http/request.rs /workspaces/Quest/simple-http/src/http/response.rs /workspaces/Quest/simple-http/src/lib.rs
